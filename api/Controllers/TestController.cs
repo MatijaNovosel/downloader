@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
 using System.Net.Http;
-using System.Web;
 using Microsoft.Extensions.Configuration;
+using Flurl;
+using Flurl.Http;
+using Flurl.Http.Configuration;
 
 namespace api.Controllers
 {
@@ -14,41 +15,29 @@ namespace api.Controllers
   [Route("api/[controller]")]
   public class TestController : ControllerBase
   {
-    private readonly IHttpClientFactory _clientFactory;
+    private readonly IFlurlClient _flurlClient;
     private readonly IConfiguration _configuration;
 
-    public TestController(IHttpClientFactory clientFactory, IConfiguration configuration)
+    public TestController(IFlurlClientFactory clientFactory, IConfiguration configuration)
     {
-      _clientFactory = clientFactory;
+      _flurlClient = clientFactory.Get(_configuration.GetSection("LastFmConfig:BaseUrl").Value);
       _configuration = configuration;
     }
 
     [HttpGet("")]
     public async Task<IActionResult> Get()
     {
-      var client = _clientFactory.CreateClient();
-      var apiKey = _configuration.GetSection("LastFmConfig:ApiKey").Value;
-
-      var builder = new UriBuilder("http://ws.audioscrobbler.com/2.0");
-      var query = HttpUtility.ParseQueryString(builder.Query);
-      query["api_key"] = apiKey;
-      query["method"] = "chart.gettopartists";
-      query["format"] = "json";
-      builder.Query = query.ToString();
-      string url = builder.ToString();
-
-      var request = new HttpRequestMessage(HttpMethod.Get, url);
-      request.Headers.Add("User-Agent", "matija_novosel");
-
-      var response = await client.SendAsync(request);
-      if (response.IsSuccessStatusCode)
+      var result = await _flurlClient
+      .Request()
+      .SetQueryParams(new
       {
-        return Ok(response);
-      }
-      else
-      {
-        return BadRequest($"{response.StatusCode} {response.ReasonPhrase}");
-      }
+        api_key = _configuration.GetSection("LastFmConfig:ApiKey").Value,
+        method = "chart.gettopartists",
+        format = "json"
+      })
+      .GetJsonAsync();
+
+      return Ok(result);
     }
   }
 }

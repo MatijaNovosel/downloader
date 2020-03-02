@@ -10,6 +10,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Flurl;
+using Flurl.Http.Configuration;
 
 namespace api
 {
@@ -26,6 +28,7 @@ namespace api
     {
       services.AddControllers();
       services.AddHttpClient();
+      services.AddSingleton<IFlurlClientFactory>();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
