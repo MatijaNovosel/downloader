@@ -1,23 +1,16 @@
 <template>
-	<q-page class="flex flex-center q-mt-lg">
+	<q-page class="flex q-mt-lg q-ml-lg">
 		<q-list dense bordered padding class="rounded-borders">
 			<template v-for="(artist, i) in artists">
 				<q-item :key="artist.name" class="q-my-md">
 					<q-item-section avatar>
-						<q-icon name="account_tree" color="black" size="34px" />
+						<q-img :src="artist.image[0]['#text'] || null" spinner-color="white" style="height: 60px; width: 60px; border: 1px solid #9e9e9e; border-radius: 6px;" />
 					</q-item-section>
 					<q-item-section top>
 						<q-item-label lines="1">
-							<span class="text-weight-medium"> {{ artist.name }} </span>
-							<span class="text-grey-8"> - GitHub repository</span>
+							<span class="text-weight-medium">{{ artist.name }}</span>
 						</q-item-label>
-						<q-item-label caption lines="1">@rstoenescu in #1: > The build system</q-item-label>
-						<q-item-label
-							lines="1"
-							class="q-mt-xs text-body2 text-weight-bold text-primary text-uppercase"
-						>
-							<span class="cursor-pointer">Open in GitHub</span>
-						</q-item-label>
+						<q-item-label caption lines="1"> <b>MBID: </b> {{ artist.mbid || 'NULL' }}</q-item-label>
 					</q-item-section>
 					<q-item-section top side>
 						<div class="text-grey-8 q-gutter-xs">
@@ -37,9 +30,9 @@ export default {
 	name: "PageIndex",
 	data() {
 		return {
-			artists: null
+      artists: null
 		};
-	},
+  },
 	created() {
 		this.$axios
 			.get("Test/searchArtist", {
