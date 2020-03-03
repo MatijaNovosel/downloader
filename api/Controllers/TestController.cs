@@ -5,9 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http;
 using Microsoft.Extensions.Configuration;
-using Flurl;
-using Flurl.Http;
-using Flurl.Http.Configuration;
+using api.Services;
 
 namespace api.Controllers
 {
@@ -15,28 +13,26 @@ namespace api.Controllers
   [Route("api/[controller]")]
   public class TestController : ControllerBase
   {
-    private readonly IFlurlClient _flurlClient;
+    private readonly ILastFmClient _httpService;
     private readonly IConfiguration _configuration;
 
-    public TestController(IFlurlClientFactory clientFactory, IConfiguration configuration)
+    public TestController(ILastFmClient httpService, IConfiguration configuration)
     {
-      _flurlClient = clientFactory.Get(_configuration.GetSection("LastFmConfig:BaseUrl").Value);
+      _httpService = httpService;
       _configuration = configuration;
     }
 
     [HttpGet("")]
     public async Task<IActionResult> Get()
     {
-      var result = await _flurlClient
-      .Request()
-      .SetQueryParams(new
-      {
-        api_key = _configuration.GetSection("LastFmConfig:ApiKey").Value,
-        method = "chart.gettopartists",
-        format = "json"
-      })
-      .GetJsonAsync();
+      var result = await _httpService.GetTopArtists();
+      return Ok(result);
+    }
 
+    [HttpGet("searchAlbum")]
+    public async Task<IActionResult> SearchAlbum(string name)
+    {
+      var result = await _httpService.SearchAlbum(name);
       return Ok(result);
     }
   }
