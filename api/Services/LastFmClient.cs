@@ -45,5 +45,20 @@ namespace api.Services
       .GetJsonAsync();
       return result;
     }
+
+    public async Task<ExpandoObject> SearchArtist(string name)
+    {
+      var result = await _flurlClient
+      .Request()
+      .SetQueryParams(new
+      {
+        api_key = _configuration.GetSection("LastFmConfig:ApiKey").Value,
+        method = "artist.search",
+        format = "json",
+        artist = name
+      })
+      .GetJsonAsync();
+      return result;
+    }
   }
 }

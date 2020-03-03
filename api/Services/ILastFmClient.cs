@@ -7,5 +7,6 @@ namespace api.Services
   { 
     Task<ExpandoObject> GetTopArtists();
     Task<ExpandoObject> SearchAlbum(string name);
+    Task<ExpandoObject> SearchArtist(string name);
   }
 }

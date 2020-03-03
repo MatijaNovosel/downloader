@@ -35,5 +35,12 @@ namespace api.Controllers
       var result = await _httpService.SearchAlbum(name);
       return Ok(result);
     }
+
+    [HttpGet("searchArtist")]
+    public async Task<IActionResult> SearchArtist(string name)
+    {
+      var result = await _httpService.SearchArtist(name);
+      return Ok(result);
+    }
   }
 }
