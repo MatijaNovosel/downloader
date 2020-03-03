@@ -29,6 +29,14 @@ namespace api
       services.AddHttpClient();
       services.AddMvc();
       services.AddScoped<ILastFmClient, LastFmClient>();
+      services.AddCors(options =>
+      {
+        options.AddDefaultPolicy(
+        builder =>
+        {
+          builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+        });
+      });
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -37,6 +45,7 @@ namespace api
       {
         app.UseDeveloperExceptionPage();
       }
+      app.UseCors();
       app.UseHttpsRedirection();
       app.UseRouting();
       app.UseAuthorization();
