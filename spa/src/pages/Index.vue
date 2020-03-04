@@ -1,47 +1,209 @@
 <template>
-	<q-page class="flex q-mt-lg q-ml-lg">
+	<q-page class="q-mt-lg q-mx-lg">
 		<div class="row">
-			<div class="col-12 q-pt-md">
-        <div class="row">
-          <div class="col-9">
-            <q-input v-model="searchText" outlined label="Artist name" />
-          </div>
-          <div class="col-3">
-            <q-btn flat color="primary" @click="getData"> Search </q-btn>
-          </div>
-        </div>
+			<div class="col-8">
+				<div class="row">
+					<div class="col-12 q-pt-md">
+						<div class="row">
+							<div class="col-10">
+								<q-input v-model="searchText" outlined label="Artist name" />
+							</div>
+							<div class="col-2 text-center">
+								<q-btn class="q-mt-sm" color="primary" @click="getData">Search</q-btn>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div v-if="loading" class="col-12 q-pt-md">
+						<div class="q-pa-md">
+							<q-item>
+								<q-item-section avatar>
+									<q-skeleton type="QAvatar" />
+								</q-item-section>
+								<q-item-section>
+									<q-item-label>
+										<q-skeleton type="text" />
+									</q-item-label>
+									<q-item-label caption>
+										<q-skeleton type="text" width="65%" />
+									</q-item-label>
+								</q-item-section>
+							</q-item>
+							<q-item>
+								<q-item-section avatar>
+									<q-skeleton type="QAvatar" />
+								</q-item-section>
+								<q-item-section>
+									<q-item-label>
+										<q-skeleton type="text" />
+									</q-item-label>
+									<q-item-label caption>
+										<q-skeleton type="text" width="65%" />
+									</q-item-label>
+								</q-item-section>
+							</q-item>
+							<q-item>
+								<q-item-section avatar>
+									<q-skeleton type="QAvatar" />
+								</q-item-section>
+								<q-item-section>
+									<q-item-label>
+										<q-skeleton type="text" />
+									</q-item-label>
+									<q-item-label caption>
+										<q-skeleton type="text" width="65%" />
+									</q-item-label>
+								</q-item-section>
+							</q-item>
+						</div>
+					</div>
+					<div v-else class="col-12 q-pt-md">
+						<q-list dense bordered class="rounded-borders">
+							<template v-for="(artist, i) in artists">
+								<q-item :key="artist.name" class="q-my-md">
+									<q-item-section avatar>
+										<q-img
+											:src="artist.image[0]['#text'] || null"
+											spinner-color="white"
+											class="bordered"
+											style="height: 60px; width: 60px; border-radius: 6px;"
+										/>
+									</q-item-section>
+									<q-item-section top>
+										<q-item-label lines="1">
+											<span class="text-weight-medium">{{ artist.name }}</span>
+										</q-item-label>
+										<q-item-label caption lines="1">
+											<b>MBID:</b>
+											{{ artist.mbid || 'NULL' }}
+										</q-item-label>
+									</q-item-section>
+									<q-item-section top side>
+										<div class="text-grey-8 q-gutter-xs">
+											<q-btn
+												size="12px"
+												flat
+												dense
+												round
+												icon="remove_red_eye"
+												@click="getArtistInfo(artist.mbid)"
+											/>
+										</div>
+									</q-item-section>
+								</q-item>
+								<q-separator :key="i" v-if="i != artists.length - 1 " />
+							</template>
+						</q-list>
+					</div>
+				</div>
 			</div>
-		</div>
-    <div class="row">
-			<div class="col-12 q-pt-md">
-				<q-list dense bordered padding class="rounded-borders">
-					<template v-for="(artist, i) in artists">
-						<q-item :key="artist.name" class="q-my-md">
-							<q-item-section avatar>
-								<q-img
-									:src="artist.image[0]['#text'] || null"
-									spinner-color="white"
-									style="height: 60px; width: 60px; border: 1px solid #9e9e9e; border-radius: 6px;"
-								/>
-							</q-item-section>
-							<q-item-section top>
-								<q-item-label lines="1">
-									<span class="text-weight-medium">{{ artist.name }}</span>
-								</q-item-label>
-								<q-item-label caption lines="1">
-									<b>MBID:</b>
-									{{ artist.mbid || 'NULL' }}
-								</q-item-label>
-							</q-item-section>
-							<q-item-section top side>
-								<div class="text-grey-8 q-gutter-xs">
-									<q-btn size="12px" flat dense round icon="remove_red_eye" />
-								</div>
-							</q-item-section>
-						</q-item>
-						<q-separator :key="i" v-if="i != artists.length - 1 " />
-					</template>
-				</q-list>
+			<div class="col-4">
+				<q-card v-if="selectedArtist" class="my-card q-mx-auto">
+					<q-img
+						position="top"
+						class="artist-img"
+						src="https://www.gitare.info/datas/users/2002-glamrock.jpg"
+					/>
+					<q-card-section class="q-py-xs bg-primary text-white">
+						<div class="row">
+							<div class="col text-h6 ellipsis">{{ selectedArtist.name }}</div>
+						</div>
+					</q-card-section>
+					<q-separator />
+					<q-card-section class="q-py-sm">
+						<div class="text-caption text-grey">{{ selectedArtist.bio.summary }}</div>
+					</q-card-section>
+					<q-separator />
+					<q-card-section class="q-py-xs text-center bg-primary text-white">Albums</q-card-section>
+					<q-separator />
+					<q-card-section v-if="albumLoading">
+						<div class="q-pa-md">
+							<q-item>
+								<q-item-section avatar>
+									<q-skeleton type="QAvatar" />
+								</q-item-section>
+								<q-item-section>
+									<q-item-label>
+										<q-skeleton type="text" />
+									</q-item-label>
+									<q-item-label caption>
+										<q-skeleton type="text" width="65%" />
+									</q-item-label>
+								</q-item-section>
+							</q-item>
+							<q-item>
+								<q-item-section avatar>
+									<q-skeleton type="QAvatar" />
+								</q-item-section>
+								<q-item-section>
+									<q-item-label>
+										<q-skeleton type="text" />
+									</q-item-label>
+									<q-item-label caption>
+										<q-skeleton type="text" width="65%" />
+									</q-item-label>
+								</q-item-section>
+							</q-item>
+							<q-item>
+								<q-item-section avatar>
+									<q-skeleton type="QAvatar" />
+								</q-item-section>
+								<q-item-section>
+									<q-item-label>
+										<q-skeleton type="text" />
+									</q-item-label>
+									<q-item-label caption>
+										<q-skeleton type="text" width="65%" />
+									</q-item-label>
+								</q-item-section>
+							</q-item>
+						</div>
+					</q-card-section>
+					<q-card-section v-else class="q-py-xs">
+						<q-list dense bordered v-if="albums.length != 0 && albums != null">
+							<template v-for="(album, i) in albums">
+								<q-expansion-item
+									group="album"
+									:key="album.name"
+									clickable
+									dense
+									dense-toggle
+									expand-separator
+									@show="getAlbumInfo(album.mbid)"
+									:label="album.name"
+								>
+									<q-card v-if="selectedAlbum != null && !albumDetailsLoading">
+										<q-separator />
+										<q-card-section class="text-center">
+											<q-img position="top" class="album-img bordered" :src="selectedAlbum.image[3]['#text']" />
+										</q-card-section>
+										<q-separator />
+										<q-card-section class="q-px-none">
+											<q-list dense>
+												<template v-for="(track, i) in selectedAlbum.tracks.track">
+													<q-item :key="track.name">
+                            <span class="text-caption">{{ (i + 1) + '. ' + track.name }}</span>
+													</q-item>
+												</template>
+											</q-list>
+										</q-card-section>
+									</q-card>
+									<q-card v-else flat class="my-card q-mx-auto q-my-md">
+										<q-skeleton height="150px" square />
+										<q-card-section>
+											<q-skeleton type="text" class="text-subtitle1" />
+											<q-skeleton type="text" width="50%" class="text-subtitle1" />
+											<q-skeleton type="text" class="text-caption" />
+										</q-card-section>
+									</q-card>
+								</q-expansion-item>
+								<q-separator :key="i" v-if="i != albums.length - 1 " />
+							</template>
+						</q-list>
+						<div v-else class="text-center">No albums!</div>
+					</q-card-section>
+				</q-card>
 			</div>
 		</div>
 	</q-page>
@@ -53,23 +215,62 @@ export default {
 	data() {
 		return {
 			artists: null,
-			searchText: null
+			searchText: null,
+			loading: false,
+			selectedArtist: null,
+			albums: null,
+			albumLoading: false,
+			selectedAlbum: null,
+			albumDetailsLoading: false
 		};
 	},
 	methods: {
+		getArtistInfo(mbid) {
+			this.$axios.get(`Test/artist/${mbid}`).then(({ data }) => {
+				this.selectedArtist = data.artist;
+				this.albumLoading = true;
+				this.$axios
+					.get(`Test/artist/album/${mbid}`)
+					.then(({ data }) => {
+						this.albums = data.topalbums.album.filter(
+							x => x.mbid != "" && x.mbid != null
+						);
+					})
+					.finally(() => {
+						this.albumLoading = false;
+					});
+			});
+		},
+		getAlbumInfo(mbid) {
+			this.albumDetailsLoading = true;
+			this.$axios
+				.get(`Test/album/${mbid}`)
+				.then(({ data }) => {
+					this.selectedAlbum = data.album;
+				})
+				.finally(() => {
+					this.albumDetailsLoading = false;
+				});
+		},
 		getData() {
-			if (this.searchText == "" || this.searchText == null) {
-        return;
-      }
-      this.$axios
-        .get("Test/searchArtist", {
-          params: {
-            name: this.searchText
-          }
-        })
-        .then(({ data }) => {
-          this.artists = data.results.artistmatches.artist;
-        });
+			if (!this.searchText) {
+				return;
+			}
+			this.loading = true;
+			this.$axios
+				.get("Test/artist", {
+					params: {
+						name: this.searchText
+					}
+				})
+				.then(({ data }) => {
+					this.artists = data.results.artistmatches.artist.filter(
+						x => x.mbid != ""
+					);
+				})
+				.finally(() => {
+					this.loading = false;
+				});
 		}
 	},
 	created() {
@@ -77,3 +278,21 @@ export default {
 	}
 };
 </script>
+
+<style scoped lang="scss">
+.artist-img {
+	width: 100%;
+	height: 200px;
+}
+.my-card {
+	max-width: 85%;
+}
+.album-img {
+	width: 50%;
+	height: 50%;
+	border-radius: 12px;
+}
+.bordered {
+	border: 1px solid #9e9e9e;
+}
+</style>

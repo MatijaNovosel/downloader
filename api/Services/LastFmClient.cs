@@ -60,5 +60,50 @@ namespace api.Services
       .GetJsonAsync();
       return result;
     }
+
+    public async Task<ExpandoObject> GetArtistInfo(string mbid)
+    {
+      var result = await _flurlClient
+      .Request()
+      .SetQueryParams(new
+      {
+        api_key = _configuration.GetSection("LastFmConfig:ApiKey").Value,
+        method = "artist.getInfo",
+        format = "json",
+        mbid = mbid
+      })
+      .GetJsonAsync();
+      return result;
+    }
+
+    public async Task<ExpandoObject> GetArtistAlbums(string mbid)
+    {
+      var result = await _flurlClient
+      .Request()
+      .SetQueryParams(new
+      {
+        api_key = _configuration.GetSection("LastFmConfig:ApiKey").Value,
+        method = "artist.getTopAlbums",
+        format = "json",
+        mbid = mbid
+      })
+      .GetJsonAsync();
+      return result;
+    }
+
+    public async Task<ExpandoObject> GetAlbumInfo(string mbid)
+    {
+      var result = await _flurlClient
+      .Request()
+      .SetQueryParams(new
+      {
+        api_key = _configuration.GetSection("LastFmConfig:ApiKey").Value,
+        method = "album.getInfo",
+        format = "json",
+        mbid = mbid
+      })
+      .GetJsonAsync();
+      return result;
+    }
   }
 }

@@ -29,17 +29,38 @@ namespace api.Controllers
       return Ok(result);
     }
 
-    [HttpGet("searchAlbum")]
+    [HttpGet("album")]
     public async Task<IActionResult> SearchAlbum(string name)
     {
       var result = await _httpService.SearchAlbum(name);
       return Ok(result);
     }
 
-    [HttpGet("searchArtist")]
+    [HttpGet("artist")]
     public async Task<IActionResult> SearchArtist(string name)
     {
       var result = await _httpService.SearchArtist(name);
+      return Ok(result);
+    }
+
+    [HttpGet("artist/{mbid}")]
+    public async Task<IActionResult> GetArtistInfo(string mbid)
+    {
+      var result = await _httpService.GetArtistInfo(mbid);
+      return Ok(result);
+    }
+
+    [HttpGet("artist/album/{mbid}")]
+    public async Task<IActionResult> GetArtistAlbums(string mbid)
+    {
+      var result = await _httpService.GetArtistAlbums(mbid);
+      return Ok(result);
+    }
+
+    [HttpGet("album/{mbid}")]
+    public async Task<IActionResult> GetAlbumInfo(string mbid)
+    {
+      var result = await _httpService.GetAlbumInfo(mbid);
       return Ok(result);
     }
   }
