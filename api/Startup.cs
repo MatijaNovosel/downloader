@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using api.Services;
+using api.Extensions;
 
 namespace api
 {
@@ -47,6 +48,7 @@ namespace api
       }
       app.UseCors();
       app.UseHttpsRedirection();
+      app.ConfigureExceptionHandler();
       app.UseRouting();
       app.UseAuthorization();
       app.UseEndpoints(endpoints =>
