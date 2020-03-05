@@ -1,12 +1,12 @@
 <template>
 	<q-page class="q-mt-lg q-mx-lg">
 		<div class="row">
-			<div class="col-8">
+			<div class="col-6">
 				<div class="row">
 					<div class="col-12 q-pt-md">
 						<div class="row">
 							<div class="col-10">
-								<q-input v-model="searchText" outlined label="Artist name" />
+								<q-input v-model="searchText" outlined label="Artist name" clearable />
 							</div>
 							<div class="col-2 text-center">
 								<q-btn class="q-mt-sm" color="primary" @click="getData">Search</q-btn>
@@ -98,7 +98,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="col-4">
+			<div class="col-6">
 				<q-card v-if="selectedArtist" class="my-card q-mx-auto">
 					<q-img
 						position="top"
@@ -172,6 +172,7 @@
 									expand-separator
 									@show="getAlbumInfo(album.mbid)"
 									:label="album.name"
+									:class="{ shaded: i % 2, nonShaded: !(i % 2) }"
 								>
 									<q-card v-if="selectedAlbum != null && !albumDetailsLoading">
 										<q-separator />
@@ -183,7 +184,9 @@
 											<q-list dense>
 												<template v-for="(track, i) in selectedAlbum.tracks.track">
 													<q-item :key="track.name">
-                            <span class="text-caption">{{ (i + 1) + '. ' + track.name }}</span>
+														<span class="text-caption">{{ (i + 1) + '. ' + track.name }}</span>
+														<q-space />
+														<q-btn :loading="track.downloading" @click="startDownload(track)" size="sm" flat round icon="file_download" />
 													</q-item>
 												</template>
 											</q-list>
@@ -246,7 +249,8 @@ export default {
 			this.$axios
 				.get(`Test/album/${mbid}`)
 				.then(({ data }) => {
-					this.selectedAlbum = data.album;
+          this.selectedAlbum = data.album;
+          this.selectedAlbum.tracks.track.forEach(x => x.downloading = false);
 				})
 				.finally(() => {
 					this.albumDetailsLoading = false;
@@ -271,11 +275,31 @@ export default {
 				.finally(() => {
 					this.loading = false;
 				});
-		}
-	},
-	created() {
-		this.getData();
-	}
+    },
+    startDownload(track) {
+      track.downloading = true;
+      this.$axios
+				.get("Test/download", {
+          params: {
+            tracks: this.selectedAlbum.tracks.track.map(x => x.name),
+            albumName: this.selectedAlbum.name,
+            artistName: this.selectedArtist.name
+          }
+        })
+        .finally(() => {
+          track.downloading = false;
+        });
+    },
+    download(contentType, base64Data, name) {
+      let element = document.createElement('a');
+      element.setAttribute('href', `data:${contentType};base64, ${base64Data}`);
+      element.setAttribute('download', name);
+      element.style.display = 'none';
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }
+  }
 };
 </script>
 
@@ -294,5 +318,14 @@ export default {
 }
 .bordered {
 	border: 1px solid #9e9e9e;
+}
+.nonShaded:hover {
+	background-color: #ebebeb;
+}
+.shaded {
+	background-color: #f6f6f6;
+}
+.shaded:hover {
+	background-color: #e6e6e6;
 }
 </style>

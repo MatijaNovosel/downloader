@@ -20,3 +20,7 @@ C:\Users\mnovosel\Desktop\Downloader\downloader\api\bin\Debug\netcoreapp3.1\Flur
 C:\Users\mnovosel\Desktop\Downloader\downloader\api\bin\Debug\netcoreapp3.1\Flurl.Http.dll
 C:\Users\mnovosel\Desktop\Downloader\downloader\api\bin\Debug\netcoreapp3.1\Newtonsoft.Json.dll
 C:\Users\mnovosel\Desktop\Downloader\downloader\api\obj\Debug\netcoreapp3.1\api.csproj.CopyComplete
+C:\Users\mnovosel\Desktop\Downloader\downloader\api\bin\Debug\netcoreapp3.1\LtGt.dll
+C:\Users\mnovosel\Desktop\Downloader\downloader\api\bin\Debug\netcoreapp3.1\Sprache.dll
+C:\Users\mnovosel\Desktop\Downloader\downloader\api\bin\Debug\netcoreapp3.1\YoutubeExplode.dll
+C:\Users\mnovosel\Desktop\Downloader\downloader\api\bin\Debug\netcoreapp3.1\DotNetZip.dll

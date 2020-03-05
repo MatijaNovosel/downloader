@@ -6,6 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net.Http;
 using Microsoft.Extensions.Configuration;
 using api.Services;
+using YoutubeExplode.Models.MediaStreams;
+using YoutubeExplode;
+using System.IO;
+using System.IO.Compression;
 
 namespace api.Controllers
 {
@@ -62,6 +66,36 @@ namespace api.Controllers
     {
       var result = await _httpService.GetAlbumInfo(mbid);
       return Ok(result);
+    }
+
+    [HttpGet("download")]
+    public async Task<IActionResult> Download([FromQuery(Name = "tracks[]")] List<string> tracks, [FromQuery(Name = "artistName")] string artistName, [FromQuery(Name = "albumName")] string albumName)
+    {
+      var client = new YoutubeClient();
+      using (FileStream zip = new FileStream($"{albumName}.zip", FileMode.Create))
+      {
+        using (ZipArchive archive = new ZipArchive(zip, ZipArchiveMode.Update))
+        {
+          foreach (string track in tracks)
+          {
+            var videos = await client.SearchVideosAsync($"{artistName} - {track} audio");
+            var streamInfoSet = await client.GetVideoMediaStreamInfosAsync(videos.First().Id);
+            var streamInfo = streamInfoSet.Audio.First();
+            var ext = streamInfo.Container.GetFileExtension();
+            using (var mr = new MemoryStream())
+            {
+              await client.DownloadMediaStreamAsync(streamInfo, mr);
+              ZipArchiveEntry entry = archive.CreateEntry($"{track}.mp3");
+              using (Stream entryStream = entry.Open())
+              {
+                mr.Position = 0;
+                mr.CopyTo(entryStream);
+              }
+            }
+          }
+        }
+      }
+      return Ok();
     }
   }
 }
