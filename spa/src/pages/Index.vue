@@ -101,9 +101,10 @@
 			<div class="col-6">
 				<q-card v-if="selectedArtist" class="my-card q-mx-auto">
 					<q-img
+            :loading="artistImageLoading"
 						position="top"
 						class="artist-img"
-						src="https://www.gitare.info/datas/users/2002-glamrock.jpg"
+						:src="selectedArtist.img"
 					/>
 					<q-card-section class="q-py-xs bg-primary text-white">
 						<div class="row">
@@ -224,13 +225,17 @@ export default {
 			albums: null,
 			albumLoading: false,
 			selectedAlbum: null,
-			albumDetailsLoading: false
+      albumDetailsLoading: false
 		};
 	},
 	methods: {
 		getArtistInfo(mbid) {
 			this.$axios.get(`Test/artist/${mbid}`).then(({ data }) => {
 				this.selectedArtist = data.artist;
+        this.artistImageLoading = true;
+        this.$axios.get("Test/artistImage", { params: { name: this.selectedArtist.name } })
+        .then(({ data }) => this.selectedArtist.img = data.strArtistFanart)
+        .finally(() => this.artistImageLoading = false);
 				this.albumLoading = true;
 				this.$axios
 					.get(`Test/artist/album/${mbid}`)

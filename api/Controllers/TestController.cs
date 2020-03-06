@@ -47,6 +47,13 @@ namespace api.Controllers
       return Ok(result);
     }
 
+    [HttpGet("artistImage")]
+    public async Task<IActionResult> ArtistImage(string name)
+    {
+      var result = await _httpService.GetArtistImage(name);
+      return Ok(result);
+    }
+
     [HttpGet("artist/{mbid}")]
     public async Task<IActionResult> GetArtistInfo(string mbid)
     {

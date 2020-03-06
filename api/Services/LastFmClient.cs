@@ -105,5 +105,17 @@ namespace api.Services
       .GetJsonAsync();
       return result;
     }
+
+    public async Task<ExpandoObject> GetArtistImage(string name)
+    {
+      var result = await _flurlClient
+      .Request("https://www.theaudiodb.com/api/v1/json/1/search.php")
+      .SetQueryParams(new
+      {
+        s = name
+      })
+      .GetJsonAsync();
+      return result;
+    }
   }
 }

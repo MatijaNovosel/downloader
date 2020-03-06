@@ -11,5 +11,6 @@ namespace api.Services
     Task<ExpandoObject> GetArtistInfo(string mbid);
     Task<ExpandoObject> GetArtistAlbums(string mbid);
     Task<ExpandoObject> GetAlbumInfo(string mbid);
+    Task<ExpandoObject> GetArtistImage(string name);
   }
 }
