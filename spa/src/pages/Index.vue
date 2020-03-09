@@ -1,5 +1,5 @@
 <template>
-	<q-page class="q-mt-lg q-mx-lg">
+	<q-page class="q-my-lg q-mx-lg">
 		<div class="row">
 			<div class="col-7">
 				<div class="row">
@@ -115,7 +115,7 @@
 					<q-card-section class="q-py-xs text-center bg-primary text-white">Albums</q-card-section>
 					<q-separator />
 					<q-card-section v-if="albumLoading">
-						<div class="q-pa-md">
+						<div>
 							<q-item>
 								<q-item-section avatar>
 									<q-skeleton type="QAvatar" />
@@ -174,6 +174,7 @@
 									<q-card v-if="selectedAlbum != null && !albumDetailsLoading">
 										<q-separator />
 										<q-card-section class="text-center">
+											<q-btn @click="startDownload" size="sm" flat round icon="file_download" class="top-right" />
 											<q-img
 												v-if="selectedAlbum.image[3]['#text'] != '' || selectedAlbum.image[3]['#text'] != null"
 												position="top"
@@ -187,15 +188,6 @@
 												<template v-for="(track, i) in selectedAlbum.tracks.track">
 													<q-item :key="track.name">
 														<span class="text-caption">{{ (i + 1) + '. ' + track.name }}</span>
-														<q-space />
-														<q-btn
-															:loading="track.downloading"
-															@click="startDownload(track)"
-															size="sm"
-															flat
-															round
-															icon="file_download"
-														/>
 													</q-item>
 												</template>
 											</q-list>
@@ -218,6 +210,17 @@
 				</q-card>
 			</div>
 		</div>
+		<q-dialog persistent v-model="downloadDialog">
+			<q-card>
+				<q-card-section>
+					<div>Please wait while the album finishes downloading...</div>
+				</q-card-section>
+				<q-separator />
+				<q-card-section class="text-center bg-orange-3">
+					<q-spinner color="orange" size="5.5em" />
+				</q-card-section>
+			</q-card>
+		</q-dialog>
 	</q-page>
 </template>
 
@@ -233,7 +236,9 @@ export default {
 			albums: null,
 			albumLoading: false,
 			selectedAlbum: null,
-			albumDetailsLoading: false
+			albumDetailsLoading: false,
+			albumDownloading: false,
+			downloadDialog: false
 		};
 	},
 	methods: {
@@ -295,8 +300,8 @@ export default {
 					this.loading = false;
 				});
 		},
-		startDownload(track) {
-			track.downloading = true;
+		startDownload() {
+			this.downloadDialog = true;
 			this.$axios
 				.get("Test/download", {
 					params: {
@@ -304,12 +309,16 @@ export default {
 						albumName: this.selectedAlbum.name,
 						artistName: this.selectedArtist.name
 					}
-        })
-        .then(({ data }) => {
-          this.download("application/zip", data, `${this.selectedArtist.name} - ${this.selectedAlbum.name}.zip`);
-        })
+				})
+				.then(({ data }) => {
+					this.download(
+						"application/zip",
+						data,
+						`${this.selectedAlbum.name}.zip`
+					);
+				})
 				.finally(() => {
-					track.downloading = false;
+					this.downloadDialog = false;
 				});
 		},
 		download(contentType, base64Data, name) {
@@ -352,5 +361,10 @@ export default {
 }
 .colored-separator {
 	background-color: #f16868;
+}
+.top-right {
+  position: absolute;
+  top: 15px;
+  right: 15px;
 }
 </style>
