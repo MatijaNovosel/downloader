@@ -1,7 +1,7 @@
 <template>
 	<q-page class="q-mt-lg q-mx-lg">
 		<div class="row">
-			<div class="col-6">
+			<div class="col-7">
 				<div class="row">
 					<div class="col-12 q-pt-md">
 						<div class="row">
@@ -59,17 +59,10 @@
 						</div>
 					</div>
 					<div v-else class="col-12 q-pt-md">
-						<q-list dense bordered class="rounded-borders">
+						<q-list v-if="artists != null" dense bordered class="rounded-borders">
 							<template v-for="(artist, i) in artists">
 								<q-item :key="artist.name" class="q-my-md">
-									<q-item-section avatar>
-										<q-img
-											:src="artist.image[0]['#text'] || null"
-											spinner-color="white"
-											class="bordered"
-											style="height: 60px; width: 60px; border-radius: 6px;"
-										/>
-									</q-item-section>
+									<q-separator class="q-pr-xs q-mr-sm colored-separator" vertical />
 									<q-item-section top>
 										<q-item-label lines="1">
 											<span class="text-weight-medium">{{ artist.name }}</span>
@@ -86,6 +79,7 @@
 												flat
 												dense
 												round
+												class="q-mt-sm"
 												icon="remove_red_eye"
 												@click="getArtistInfo(artist.mbid)"
 											/>
@@ -98,14 +92,16 @@
 					</div>
 				</div>
 			</div>
-			<div class="col-6">
+			<div class="col-5">
 				<q-card v-if="selectedArtist" class="my-card q-mx-auto">
 					<q-img
-            :loading="artistImageLoading"
-						position="top"
+						:loading="artistImageLoading"
+						v-if="selectedArtist.img != null"
+						position="center"
 						class="artist-img"
 						:src="selectedArtist.img"
 					/>
+					<div v-else class="q-py-lg text-center">No image!</div>
 					<q-card-section class="q-py-xs bg-primary text-white">
 						<div class="row">
 							<div class="col text-h6 ellipsis">{{ selectedArtist.name }}</div>
@@ -178,7 +174,12 @@
 									<q-card v-if="selectedAlbum != null && !albumDetailsLoading">
 										<q-separator />
 										<q-card-section class="text-center">
-											<q-img position="top" class="album-img bordered" :src="selectedAlbum.image[3]['#text']" />
+											<q-img
+												v-if="selectedAlbum.image[3]['#text'] != '' || selectedAlbum.image[3]['#text'] != null"
+												position="top"
+												class="album-img bordered"
+												:src="selectedAlbum.image[3]['#text']"
+											/>
 										</q-card-section>
 										<q-separator />
 										<q-card-section class="q-px-none">
@@ -187,7 +188,14 @@
 													<q-item :key="track.name">
 														<span class="text-caption">{{ (i + 1) + '. ' + track.name }}</span>
 														<q-space />
-														<q-btn :loading="track.downloading" @click="startDownload(track)" size="sm" flat round icon="file_download" />
+														<q-btn
+															:loading="track.downloading"
+															@click="startDownload(track)"
+															size="sm"
+															flat
+															round
+															icon="file_download"
+														/>
 													</q-item>
 												</template>
 											</q-list>
@@ -225,17 +233,23 @@ export default {
 			albums: null,
 			albumLoading: false,
 			selectedAlbum: null,
-      albumDetailsLoading: false
+			albumDetailsLoading: false
 		};
 	},
 	methods: {
 		getArtistInfo(mbid) {
 			this.$axios.get(`Test/artist/${mbid}`).then(({ data }) => {
 				this.selectedArtist = data.artist;
-        this.artistImageLoading = true;
-        this.$axios.get("Test/artistImage", { params: { name: this.selectedArtist.name } })
-        .then(({ data }) => this.selectedArtist.img = data.strArtistFanart)
-        .finally(() => this.artistImageLoading = false);
+				this.artistImageLoading = true;
+				this.$axios
+					.get("Test/artistImage", {
+						params: { name: this.selectedArtist.name }
+					})
+					.then(
+						({ data }) =>
+							(this.selectedArtist.img = data.artists[0].strArtistFanart)
+					)
+					.finally(() => (this.artistImageLoading = false));
 				this.albumLoading = true;
 				this.$axios
 					.get(`Test/artist/album/${mbid}`)
@@ -254,8 +268,8 @@ export default {
 			this.$axios
 				.get(`Test/album/${mbid}`)
 				.then(({ data }) => {
-          this.selectedAlbum = data.album;
-          this.selectedAlbum.tracks.track.forEach(x => x.downloading = false);
+					this.selectedAlbum = data.album;
+					this.selectedAlbum.tracks.track.forEach(x => (x.downloading = false));
 				})
 				.finally(() => {
 					this.albumDetailsLoading = false;
@@ -280,45 +294,48 @@ export default {
 				.finally(() => {
 					this.loading = false;
 				});
-    },
-    startDownload(track) {
-      track.downloading = true;
-      this.$axios
+		},
+		startDownload(track) {
+			track.downloading = true;
+			this.$axios
 				.get("Test/download", {
-          params: {
-            tracks: this.selectedAlbum.tracks.track.map(x => x.name),
-            albumName: this.selectedAlbum.name,
-            artistName: this.selectedArtist.name
-          }
+					params: {
+						tracks: this.selectedAlbum.tracks.track.map(x => x.name),
+						albumName: this.selectedAlbum.name,
+						artistName: this.selectedArtist.name
+					}
         })
-        .finally(() => {
-          track.downloading = false;
-        });
-    },
-    download(contentType, base64Data, name) {
-      let element = document.createElement('a');
-      element.setAttribute('href', `data:${contentType};base64, ${base64Data}`);
-      element.setAttribute('download', name);
-      element.style.display = 'none';
-      document.body.appendChild(element);
-      element.click();
-      document.body.removeChild(element);
-    }
-  }
+        .then(({ data }) => {
+          this.download("application/zip", data, `${this.selectedArtist.name} - ${this.selectedAlbum.name}.zip`);
+        })
+				.finally(() => {
+					track.downloading = false;
+				});
+		},
+		download(contentType, base64Data, name) {
+			let element = document.createElement("a");
+			element.setAttribute("href", `data:${contentType};base64, ${base64Data}`);
+			element.setAttribute("download", name);
+			element.style.display = "none";
+			document.body.appendChild(element);
+			element.click();
+			document.body.removeChild(element);
+		}
+	}
 };
 </script>
 
 <style scoped lang="scss">
 .artist-img {
 	width: 100%;
-	height: 200px;
+	height: 300px;
 }
 .my-card {
 	max-width: 85%;
 }
 .album-img {
-	width: 50%;
-	height: 50%;
+	width: 30%;
+	height: 30%;
 	border-radius: 12px;
 }
 .bordered {
@@ -332,5 +349,8 @@ export default {
 }
 .shaded:hover {
 	background-color: #e6e6e6;
+}
+.colored-separator {
+	background-color: #f16868;
 }
 </style>
