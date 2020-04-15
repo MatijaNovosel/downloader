@@ -7,7 +7,10 @@
             <q-input dense v-model="searchText" standout label="Artist name" clearable />
           </div>
           <div class="col-12 q-mt-sm q-pl-sm">
-            <span class="hint-text"> Press <kbd>ENTER</kbd> when done typing! </span>
+            <span class="hint-text">
+              Press
+              <kbd>ENTER</kbd> when done typing!
+            </span>
           </div>
         </div>
         <div class="row">
@@ -218,15 +221,34 @@
           <div>Please wait while the album finishes downloading...</div>
         </q-card-section>
         <q-separator />
-        <q-card-section class="text-center bg-orange-3">
-          <q-spinner color="orange" size="5.5em" />
+        <q-card-section class="text-center q-pb-sm">
+          <div class="row items-center">
+            <div class="col-10">
+              <q-linear-progress dark size="10px" :value="progress" color="warning" />
+            </div>
+            <div class="col-2">
+              <q-spinner-oval size="1.5em" />
+            </div>
+            <div class="col-12 q-mt-sm">
+              <span class="status-message">{{ statusMessage }}</span>
+            </div>
+          </div>
         </q-card-section>
+        <q-card-actions class="justify-center q-pt-none">
+          <q-btn @click="cancel" size="sm" class="bg-red-10">Cancel</q-btn>
+        </q-card-actions>
       </q-card>
     </q-dialog>
   </q-page>
 </template>
 
 <script>
+import {
+  HubConnectionBuilder,
+  LogLevel,
+  HttpTransportType
+} from "@aspnet/signalr";
+
 export default {
   name: "Downloader",
   data() {
@@ -240,10 +262,18 @@ export default {
       selectedAlbum: null,
       albumDetailsLoading: false,
       albumDownloading: false,
-      downloadDialog: false
+      downloadDialog: false,
+      progress: 0,
+      progressSection: null,
+      statusMessage: "None"
     };
   },
   methods: {
+    cancel() {
+      this.connection.invoke("Cancel").then(() => {
+        this.downloadDialog = false;
+      });
+    },
     getArtistInfo(mbid) {
       this.$axios.get(`Test/artist/${mbid}`).then(({ data }) => {
         this.selectedArtist = data.artist;
@@ -305,6 +335,9 @@ export default {
     },
     startDownload() {
       this.downloadDialog = true;
+      this.statusMessage = "Starting...";
+      this.progressSection = 1.0 / this.selectedAlbum.tracks.track.length;
+
       this.$axios
         .get("Test/download", {
           params: {
@@ -335,11 +368,32 @@ export default {
     }
   },
   created() {
+    this.connection = new HubConnectionBuilder()
+      .withUrl("http://localhost:5000/downloader-hub")
+      .catch(err => {
+        console.error("Failed to connect with hub", err);
+      })
+      .configureLogging(LogLevel.Information)
+      .build();
+    this.connection.on("fetchingSong", song => {
+      this.statusMessage = `Fetching ${song}`;
+    });
+    this.connection.on("downloadingSong", song => {
+      this.statusMessage = `Downloading ${song}`;
+    });
+    this.connection.on("downloadedSong", song => {
+      this.progress += this.progressSection;
+      this.statusMessage = `Downloaded ${song}`;
+    });
+    this.connection.start();
     document.addEventListener("keydown", e => {
       if (e.keyCode === 13) {
         this.getData();
       }
     });
+  },
+  beforeDestroy() {
+    this.connection.stop();
   }
 };
 </script>
@@ -364,6 +418,10 @@ export default {
 }
 .hint-text {
   font-size: 11px;
+  color: rgb(141, 141, 141);
+}
+.status-message {
+  font-size: 12px;
   color: rgb(141, 141, 141);
 }
 </style>

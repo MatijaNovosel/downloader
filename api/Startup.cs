@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using api.Services;
 using api.Extensions;
+using api.Hubs;
 
 namespace api
 {
@@ -29,14 +30,20 @@ namespace api
       services.AddControllers();
       services.AddHttpClient();
       services.AddMvc();
+      services.AddSignalR();
       services.AddScoped<ILastFmClient, LastFmClient>();
       services.AddCors(options =>
       {
         options.AddDefaultPolicy(
-        builder =>
-        {
-          builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-        });
+          builder =>
+          {
+            builder
+              .WithOrigins(new string[] { "http://localhost:8080", "null" })
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials()
+              .SetIsOriginAllowedToAllowWildcardSubdomains();
+          });
       });
     }
 
@@ -54,6 +61,7 @@ namespace api
       app.UseEndpoints(endpoints =>
       {
         endpoints.MapControllers();
+        endpoints.MapHub<DownloaderHub>("/downloader-hub");
       });
     }
   }

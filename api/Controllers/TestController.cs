@@ -10,6 +10,8 @@ using YoutubeExplode.Models.MediaStreams;
 using YoutubeExplode;
 using System.IO;
 using System.IO.Compression;
+using api.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace api.Controllers
 {
@@ -19,11 +21,13 @@ namespace api.Controllers
   {
     private readonly ILastFmClient _httpService;
     private readonly IConfiguration _configuration;
+    private readonly IHubContext<DownloaderHub> _hubContext;
 
-    public TestController(ILastFmClient httpService, IConfiguration configuration)
+    public TestController(ILastFmClient httpService, IConfiguration configuration, IHubContext<DownloaderHub> chatHub)
     {
       _httpService = httpService;
       _configuration = configuration;
+      _hubContext = chatHub;
     }
 
     [HttpGet("")]
@@ -85,18 +89,27 @@ namespace api.Controllers
         foreach (string track in tracks)
         {
           var videos = await client.SearchVideosAsync($"{artistName} - {track} audio");
+
+          await this._hubContext.Clients.All.SendAsync("fetchingSong", $"{track}");
+
           var streamInfoSet = await client.GetVideoMediaStreamInfosAsync(videos.First().Id);
           var streamInfo = streamInfoSet.Audio.First();
           var ext = streamInfo.Container.GetFileExtension();
+
           using (var mr = new MemoryStream())
           {
             await client.DownloadMediaStreamAsync(streamInfo, mr);
+
+            await this._hubContext.Clients.All.SendAsync("downloadingSong", $"{track}");
+
             ZipArchiveEntry entry = archive.CreateEntry($"{track}.mp3");
             using (Stream entryStream = entry.Open())
             {
               mr.Position = 0;
               mr.CopyTo(entryStream);
             }
+
+            await this._hubContext.Clients.All.SendAsync("downloadedSong", $"{track}");
           }
         }
       }

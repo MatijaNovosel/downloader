@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Matija\\Desktop\\electron-app\\api\\api.csproj": {}
+    "C:\\Users\\Matija\\Desktop\\Repositories\\downloader\\api\\api.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Matija\\Desktop\\electron-app\\api\\api.csproj": {
+    "C:\\Users\\Matija\\Desktop\\Repositories\\downloader\\api\\api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Matija\\Desktop\\electron-app\\api\\api.csproj",
+        "projectUniqueName": "C:\\Users\\Matija\\Desktop\\Repositories\\downloader\\api\\api.csproj",
         "projectName": "api",
-        "projectPath": "C:\\Users\\Matija\\Desktop\\electron-app\\api\\api.csproj",
+        "projectPath": "C:\\Users\\Matija\\Desktop\\Repositories\\downloader\\api\\api.csproj",
         "packagesPath": "C:\\Users\\Matija\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Matija\\Desktop\\electron-app\\api\\obj\\",
+        "outputPath": "C:\\Users\\Matija\\Desktop\\Repositories\\downloader\\api\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Matija\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -39,6 +39,10 @@
             "Flurl.Http": {
               "target": "Package",
               "version": "[2.4.2, )"
+            },
+            "Microsoft.AspNetCore.SignalR": {
+              "target": "Package",
+              "version": "[1.1.0, )"
             },
             "YoutubeExplode": {
               "target": "Package",
