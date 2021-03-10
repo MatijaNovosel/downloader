@@ -1,4 +1,4 @@
 # downloader
-Song downloader made with .NET Core and LAST FM using Electron and Vue for the frontend.
+Song downloader.
 ***
 ![](https://i.imgur.com/xHJPYmP.png)
